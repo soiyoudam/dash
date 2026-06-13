@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>반별 학생 대시보드 - 담담쌤</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+  <nav class="top-nav">
+    <div class="logo">✨ Damdam Class Dashboard</div>
+    <div class="user-actions">
+      <span class="sync-status" id="syncStatus" title="저장 모드"></span>
+      <span class="mode-hint" id="modeHint">학생 모드 · 이름을 누르면 담벼락이 열려요</span>
+      <button class="button-ghost" id="loginBtn" hidden>
+        <span class="g-icon">G</span> Google 로그인
+      </button>
+      <span class="user-chip" id="userChip" hidden>
+        <img class="user-avatar" id="userAvatar" alt="" referrerpolicy="no-referrer">
+        <span class="user-name" id="userName"></span>
+        <button class="user-logout" id="logoutBtn" type="button">로그아웃</button>
+      </span>
+      <button class="button-primary" id="modeToggle">선생님 모드</button>
+    </div>
+  </nav>
+
+  <header class="hero-band">
+    <h1 class="display-lg">학생 대시보드</h1>
+    <p class="body-strong">각 반의 명렬표와 출결 상태를 확인하세요.</p>
+  </header>
+
+  <section class="dashboard-content">
+    <div class="tabs-container">
+      <button class="category-tab active" data-class="5">3학년 5반</button>
+      <button class="category-tab" data-class="6">3학년 6반</button>
+      <button class="category-tab" data-class="7">3학년 7반</button>
+      <button class="category-tab" data-class="8">3학년 8반</button>
+    </div>
+
+    <div class="students-grid" id="studentsGrid">
+      <!-- Students will be injected here via app.js -->
+    </div>
+  </section>
+
+  <footer class="footer">
+    <p class="body-sm">© 2026 담담쌤 Class Dashboard. All rights reserved.</p>
+  </footer>
+
+  <!-- 학생 담벼락 오버레이 (패들렛 스타일) -->
+  <div class="wall-overlay" id="wallOverlay" hidden>
+    <header class="wall-header">
+      <button class="wall-back" id="wallBack">← 돌아가기</button>
+      <div class="wall-titles">
+        <h2 class="wall-title" id="wallTitle">○○○의 담벼락</h2>
+        <p class="wall-subtitle">나의 수행 결과물을 자유롭게 붙여보세요</p>
+      </div>
+      <button class="button-primary" id="addPostBtn">+ 결과물 추가</button>
+    </header>
+    <div class="wall-board" id="wallBoard">
+      <!-- 게시물이 여기에 렌더링됩니다 -->
+    </div>
+  </div>
+
+  <!-- 결과물 작성 모달 -->
+  <div class="modal-backdrop" id="postModal" hidden>
+    <form class="modal-card" id="postForm">
+      <h3 class="title-md">결과물 붙이기</h3>
+      <label class="field-label">제목
+        <input type="text" id="postTitle" class="field-input" placeholder="예: 1차 발표 자료" required maxlength="40">
+      </label>
+      <label class="field-label">내용
+        <textarea id="postBody" class="field-input" rows="4" placeholder="활동 내용이나 느낀 점을 적어보세요" maxlength="500"></textarea>
+      </label>
+      <label class="field-label">이미지/링크 주소 <span class="field-optional">(선택)</span>
+        <input type="url" id="postLink" class="field-input" placeholder="https://...">
+      </label>
+      <div class="color-row" id="colorRow">
+        <span class="field-label" style="margin:0">색상</span>
+        <button type="button" class="color-dot color-pink" data-color="pink" aria-label="핑크"></button>
+        <button type="button" class="color-dot color-teal" data-color="teal" aria-label="틸"></button>
+        <button type="button" class="color-dot color-lavender" data-color="lavender" aria-label="라벤더"></button>
+        <button type="button" class="color-dot color-peach" data-color="peach" aria-label="피치"></button>
+        <button type="button" class="color-dot color-ochre" data-color="ochre" aria-label="오커"></button>
+        <button type="button" class="color-dot color-cream" data-color="cream" aria-label="크림"></button>
+      </div>
+      <div class="modal-actions">
+        <button type="button" class="button-ghost" id="postCancel">취소</button>
+        <button type="submit" class="button-primary">붙이기</button>
+      </div>
+    </form>
+  </div>
+
+  <script type="module" src="app.js"></script>
+</body>
+</html>
