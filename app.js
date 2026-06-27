@@ -176,6 +176,11 @@ const wallTitle = document.getElementById('wallTitle');
 const wallBack = document.getElementById('wallBack');
 const addPostBtn = document.getElementById('addPostBtn');
 
+const docOverlay = document.getElementById('docOverlay');
+const docModalTitle = document.getElementById('docTitle');
+const docBody = document.getElementById('docBody');
+const docClose = document.getElementById('docClose');
+
 const postModal = document.getElementById('postModal');
 const postForm = document.getElementById('postForm');
 const postTitle = document.getElementById('postTitle');
@@ -399,6 +404,67 @@ postForm.addEventListener('submit', async (e) => {
   }
 });
 
+// ===== 문서 뷰어 (약관·개인정보처리방침) =====
+function mdToHtml(md) {
+  const esc = s => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
+  const inline = s => esc(s)
+    .replace(/`([^`]+)`/g, '<code>$1</code>')
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
+
+  const lines = md.replace(/\r\n/g, '\n').split('\n');
+  let html = '';
+  let listType = null, listBuf = [], para = [], quote = [];
+  const flushList = () => { if (listType) { html += `<${listType}>` + listBuf.map(li => `<li>${li}</li>`).join('') + `</${listType}>`; listType = null; listBuf = []; } };
+  const flushPara = () => { if (para.length) { html += `<p>${para.join('<br>')}</p>`; para = []; } };
+  const flushQuote = () => { if (quote.length) { html += `<blockquote>${quote.map(inline).join('<br>')}</blockquote>`; quote = []; } };
+
+  for (const raw of lines) {
+    const line = raw.trimEnd();
+    if (/^>\s?/.test(line)) { flushList(); flushPara(); quote.push(line.replace(/^>\s?/, '')); continue; }
+    flushQuote();
+    let m;
+    if ((m = line.match(/^(#{1,6})\s+(.*)/))) { flushList(); flushPara(); const lvl = m[1].length; html += `<h${lvl}>${inline(m[2])}</h${lvl}>`; continue; }
+    if (/^---+$/.test(line)) { flushList(); flushPara(); html += '<hr>'; continue; }
+    if ((m = line.match(/^[-*]\s+(.*)/))) { flushPara(); if (listType !== 'ul') { flushList(); listType = 'ul'; } listBuf.push(inline(m[1])); continue; }
+    if ((m = line.match(/^\d+\.\s+(.*)/))) { flushPara(); if (listType !== 'ol') { flushList(); listType = 'ol'; } listBuf.push(inline(m[1])); continue; }
+    flushList();
+    if (line.trim() === '') { flushPara(); continue; }
+    para.push(inline(line));
+  }
+  flushList(); flushPara(); flushQuote();
+  return html;
+}
+
+async function openDoc(file, title) {
+  docModalTitle.textContent = title;
+  docBody.innerHTML = '<p>불러오는 중…</p>';
+  docOverlay.hidden = false;
+  document.body.classList.add('no-scroll');
+  try {
+    const res = await fetch(file);
+    if (!res.ok) throw new Error('HTTP ' + res.status);
+    docBody.innerHTML = mdToHtml(await res.text());
+    docBody.scrollTop = 0;
+  } catch (err) {
+    console.error('[openDoc] 문서 로드 실패', err);
+    docBody.innerHTML = `<p>문서를 불러오지 못했습니다.</p>
+      <p><a href="${file}" target="_blank" rel="noopener">${escapeHtml(file)} 새 창에서 열기</a></p>`;
+  }
+}
+function closeDoc() {
+  docOverlay.hidden = true;
+  document.body.classList.remove('no-scroll');
+}
+
+document.querySelectorAll('.footer-links a[data-doc]').forEach(a => {
+  a.addEventListener('click', (e) => {
+    e.preventDefault();
+    openDoc(a.getAttribute('data-doc'), a.getAttribute('data-title') || '문서');
+  });
+});
+docClose.addEventListener('click', closeDoc);
+docOverlay.addEventListener('click', (e) => { if (e.target === docOverlay) closeDoc(); });
+
 // ===== 이벤트 바인딩 =====
 wallBack.addEventListener('click', closeWall);
 addPostBtn.addEventListener('click', openPostModal);
@@ -406,7 +472,8 @@ postCancel.addEventListener('click', closePostModal);
 postModal.addEventListener('click', (e) => { if (e.target === postModal) closePostModal(); });
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
-  if (!postModal.hidden) closePostModal();
+  if (!docOverlay.hidden) closeDoc();
+  else if (!postModal.hidden) closePostModal();
   else if (!wallOverlay.hidden) closeWall();
 });
 

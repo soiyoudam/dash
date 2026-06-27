@@ -477,11 +477,89 @@ body.no-scroll { overflow: hidden; }
 }
 .wall-empty .title-md { color: var(--color-ink); margin-bottom: var(--spacing-xs); }
 
+/* ===== Footer 링크 ===== */
+.footer-links {
+  margin-top: var(--spacing-sm);
+  font-size: 14px;
+  font-weight: 600;
+}
+.footer-links a {
+  color: var(--color-ink);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.15s;
+  cursor: pointer;
+}
+.footer-links a:hover { border-bottom-color: var(--color-ink); }
+.footer-sep { color: var(--color-muted); margin: 0 var(--spacing-xs); }
+.footer-officer { margin-top: var(--spacing-xs); }
+
 /* ===== 모달 ===== */
 /* hidden 속성이 항상 우선하도록 (display:flex 등이 [hidden]을 덮어쓰는 문제 방지) */
 .modal-backdrop[hidden],
 .wall-overlay[hidden] {
   display: none !important;
+}
+
+/* ===== 문서 뷰어 모달 ===== */
+.doc-modal {
+  background: var(--color-canvas);
+  border-radius: var(--rounded-xl);
+  width: 100%;
+  max-width: 720px;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 20px 50px rgba(0,0,0,0.2);
+  overflow: hidden;
+}
+.doc-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--spacing-md);
+  padding: var(--spacing-lg) var(--spacing-xl);
+  border-bottom: 1px solid rgba(0,0,0,0.08);
+}
+.doc-title { font-size: 20px; font-weight: 600; color: var(--color-ink); }
+.doc-close {
+  width: 36px; height: 36px;
+  border: none;
+  border-radius: var(--rounded-pill);
+  background: var(--color-surface-card);
+  font-size: 22px;
+  line-height: 1;
+  cursor: pointer;
+  color: var(--color-ink);
+}
+.doc-close:hover { background: #ece5d2; }
+.doc-body {
+  padding: var(--spacing-lg) var(--spacing-xl) var(--spacing-xl);
+  overflow-y: auto;
+  color: var(--color-body);
+  line-height: 1.65;
+}
+.doc-body h1 { font-size: 24px; color: var(--color-ink); margin-bottom: var(--spacing-md); }
+.doc-body h2 { font-size: 18px; color: var(--color-ink); margin: var(--spacing-lg) 0 var(--spacing-xs); }
+.doc-body h3 { font-size: 15px; color: var(--color-body-strong); margin: var(--spacing-md) 0 var(--spacing-xxs); }
+.doc-body p { margin-bottom: var(--spacing-sm); font-size: 14px; }
+.doc-body ul, .doc-body ol { margin: 0 0 var(--spacing-sm) var(--spacing-lg); }
+.doc-body li { font-size: 14px; margin-bottom: 4px; }
+.doc-body hr { border: none; border-top: 1px solid rgba(0,0,0,0.1); margin: var(--spacing-lg) 0; }
+.doc-body code {
+  background: var(--color-surface-card);
+  padding: 1px 6px;
+  border-radius: var(--rounded-xs);
+  font-size: 13px;
+}
+.doc-body blockquote {
+  border-left: 3px solid var(--color-brand-lavender);
+  background: var(--color-surface-soft);
+  padding: var(--spacing-sm) var(--spacing-md);
+  margin: 0 0 var(--spacing-sm);
+  border-radius: 0 var(--rounded-sm) var(--rounded-sm) 0;
+  font-size: 13px;
+  color: var(--color-muted);
 }
 
 .modal-backdrop {
