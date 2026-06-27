@@ -156,7 +156,6 @@ let currentClass = "5";
 let activeStudent = null;
 let wallUnsub = null;
 let selectedColor = 'pink';
-let currentUser = null;
 
 // ===== DOM =====
 const tabs = document.querySelectorAll('.category-tab');
@@ -250,8 +249,14 @@ function startRename(card, student, classNum) {
     if (save) {
       const newName = input.value.trim();
       if (newName && newName !== student.name) {
-        if (!ensureAuthed()) { renderStudents(currentClass); return; }
-        await store.renameStudent(classNum, student.id, newName);
+        if (!(await ensureAuthedInteractive())) { renderStudents(currentClass); return; }
+        try {
+          await store.renameStudent(classNum, student.id, newName);
+        } catch (err) {
+          console.error('[renameStudent] 수정 실패', err);
+          alert('이름 수정에 실패했어요: ' + (err.message || err.code || err));
+          renderStudents(currentClass);
+        }
         return; // onClasses 스냅샷이 다시 그려줌
       }
     }
@@ -339,14 +344,19 @@ function renderWall(posts) {
 }
 
 async function deletePost(postId) {
-  if (!ensureAuthed()) return;
   if (!confirm('이 결과물을 삭제할까요?')) return;
-  await store.deletePost(activeStudent.id, postId);
+  if (!(await ensureAuthedInteractive())) return;
+  try {
+    await store.deletePost(activeStudent.id, postId);
+  } catch (err) {
+    console.error('[deletePost] 삭제 실패', err);
+    alert('삭제에 실패했어요: ' + (err.message || err.code || err));
+  }
 }
 
 // ----- 결과물 추가 모달 -----
 function openPostModal() {
-  if (!ensureAuthed()) return;
+  if (!activeStudent) { alert('학생을 먼저 선택해주세요.'); return; }
   postForm.reset();
   selectColor('pink');
   postModal.hidden = false;
@@ -366,7 +376,8 @@ colorRow.addEventListener('click', (e) => {
 
 postForm.addEventListener('submit', async (e) => {
   e.preventDefault();
-  if (!ensureAuthed()) return;
+  if (!activeStudent) { alert('학생을 먼저 선택해주세요.'); return; }
+  if (!(await ensureAuthedInteractive())) return; // 필요 시 로그인 유도
   const user = store.auth ? store.auth.current() : null;
   const post = {
     id: `${Date.now()}-${Math.floor(Math.random() * 1000)}`, // 로컬용 id
@@ -378,8 +389,14 @@ postForm.addEventListener('submit', async (e) => {
     authorName: user ? (user.displayName || '익명') : null,
     authorUid: user ? user.uid : null
   };
-  closePostModal();
-  await store.addPost(activeStudent.id, post);
+  try {
+    await store.addPost(activeStudent.id, post);
+    closePostModal(); // 저장 성공 후에만 닫기
+  } catch (err) {
+    console.error('[addPost] 저장 실패', err);
+    alert('저장에 실패했어요: ' + (err.message || err.code || err) +
+      '\n(Firestore 보안 규칙에서 쓰기를 막고 있을 수 있어요.)');
+  }
 });
 
 // ===== 이벤트 바인딩 =====
@@ -415,13 +432,20 @@ function setSyncBadge(mode) {
   }
 }
 
-// 쓰기 작업 전 로그인 확인 (Firebase 모드에서만 요구)
-function ensureAuthed() {
-  if (store && store.auth && !store.auth.current()) {
-    alert('Google 로그인 후 이용할 수 있어요.');
+// 쓰기 작업 전 로그인 확인 (Firebase 모드에서만 요구).
+// 로그인이 안 돼 있으면 그 자리에서 Google 로그인 팝업을 띄우고 결과를 기다린다.
+// 로컬 모드(store.auth 없음)에서는 항상 통과.
+async function ensureAuthedInteractive() {
+  if (!store || !store.auth) return true;       // 로컬 모드: 로그인 불필요
+  if (store.auth.current()) return true;        // 이미 로그인됨
+  try {
+    await store.auth.signIn();
+    return !!store.auth.current();
+  } catch (err) {
+    console.warn('[Auth] 로그인 취소/실패', err);
+    alert('이 작업을 하려면 Google 로그인이 필요해요.');
     return false;
   }
-  return true;
 }
 
 // ===== 로그인 UI =====
@@ -442,7 +466,6 @@ function setupAuthUI() {
   logoutBtn.addEventListener('click', () => store.auth.signOut());
 
   store.auth.onChange(user => {
-    currentUser = user;
     if (user) {
       loginBtn.hidden = true;
       userChip.hidden = false;
