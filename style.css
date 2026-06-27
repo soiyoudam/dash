@@ -501,7 +501,40 @@ body.no-scroll { overflow: hidden; }
   display: none !important;
 }
 
+/* ===== 동의 모달 ===== */
+/* 결과물 작성 모달(z 200) 위에 표시되도록 */
+#consentModal { z-index: 260; }
+.consent-card { max-width: 460px; }
+.consent-intro { font-size: 14px; color: var(--color-body); margin-bottom: var(--spacing-xs); }
+.consent-row {
+  display: flex;
+  align-items: flex-start;
+  gap: var(--spacing-sm);
+  padding: var(--spacing-sm);
+  border-radius: var(--rounded-sm);
+  background: var(--color-surface-soft);
+  font-size: 14px;
+  line-height: 1.5;
+}
+.consent-row label {
+  flex: 1;
+  cursor: pointer;
+}
+.consent-row input[type="checkbox"] {
+  width: 18px;
+  height: 18px;
+  margin-top: 2px;
+  flex-shrink: 0;
+  accent-color: var(--color-brand-pink);
+  cursor: pointer;
+}
+.consent-links { font-size: 13px; color: var(--color-muted); }
+.consent-links a { color: var(--color-ink); font-weight: 600; text-decoration: underline; cursor: pointer; }
+.button-primary:disabled { opacity: 0.45; cursor: not-allowed; }
+
 /* ===== 문서 뷰어 모달 ===== */
+/* 동의 모달 등 다른 모달 위에 표시 */
+.doc-overlay { z-index: 300; }
 .doc-modal {
   background: var(--color-canvas);
   border-radius: var(--rounded-xl);

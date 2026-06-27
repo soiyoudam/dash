@@ -176,6 +176,12 @@ const wallTitle = document.getElementById('wallTitle');
 const wallBack = document.getElementById('wallBack');
 const addPostBtn = document.getElementById('addPostBtn');
 
+const consentModal = document.getElementById('consentModal');
+const consentPrivacy = document.getElementById('consentPrivacy');
+const consentGuardian = document.getElementById('consentGuardian');
+const consentAgree = document.getElementById('consentAgree');
+const consentCancel = document.getElementById('consentCancel');
+
 const docOverlay = document.getElementById('docOverlay');
 const docModalTitle = document.getElementById('docTitle');
 const docBody = document.getElementById('docBody');
@@ -404,6 +410,44 @@ postForm.addEventListener('submit', async (e) => {
   }
 });
 
+// ===== 회원가입(이용) 동의 =====
+const CONSENT_KEY = 'damdam_consent_v1';
+let consentResolver = null;
+
+function hasConsented() {
+  try { return localStorage.getItem(CONSENT_KEY) === '1'; } catch (e) { return false; }
+}
+
+// 동의가 필요하면 모달을 띄우고, 동의/취소 결과를 Promise<boolean>로 반환.
+// 이미 동의한 적이 있으면 즉시 통과.
+function requireConsent() {
+  if (hasConsented()) return Promise.resolve(true);
+  return new Promise(resolve => {
+    consentResolver = resolve;
+    consentPrivacy.checked = false;
+    consentGuardian.checked = false;
+    consentAgree.disabled = true;
+    consentModal.hidden = false;
+  });
+}
+
+function updateConsentBtn() {
+  consentAgree.disabled = !(consentPrivacy.checked && consentGuardian.checked);
+}
+
+function resolveConsent(ok) {
+  consentModal.hidden = true;
+  if (ok) { try { localStorage.setItem(CONSENT_KEY, '1'); } catch (e) {} }
+  const r = consentResolver; consentResolver = null;
+  if (r) r(ok);
+}
+
+consentPrivacy.addEventListener('change', updateConsentBtn);
+consentGuardian.addEventListener('change', updateConsentBtn);
+consentAgree.addEventListener('click', () => resolveConsent(true));
+consentCancel.addEventListener('click', () => resolveConsent(false));
+consentModal.addEventListener('click', (e) => { if (e.target === consentModal) resolveConsent(false); });
+
 // ===== 문서 뷰어 (약관·개인정보처리방침) =====
 function mdToHtml(md) {
   const esc = s => s.replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c]));
@@ -456,7 +500,7 @@ function closeDoc() {
   document.body.classList.remove('no-scroll');
 }
 
-document.querySelectorAll('.footer-links a[data-doc]').forEach(a => {
+document.querySelectorAll('a[data-doc]').forEach(a => {
   a.addEventListener('click', (e) => {
     e.preventDefault();
     openDoc(a.getAttribute('data-doc'), a.getAttribute('data-title') || '문서');
@@ -473,6 +517,7 @@ postModal.addEventListener('click', (e) => { if (e.target === postModal) closePo
 document.addEventListener('keydown', (e) => {
   if (e.key !== 'Escape') return;
   if (!docOverlay.hidden) closeDoc();
+  else if (!consentModal.hidden) resolveConsent(false);
   else if (!postModal.hidden) closePostModal();
   else if (!wallOverlay.hidden) closeWall();
 });
@@ -503,8 +548,13 @@ function setSyncBadge(mode) {
 // 로그인이 안 돼 있으면 그 자리에서 Google 로그인 팝업을 띄우고 결과를 기다린다.
 // 로컬 모드(store.auth 없음)에서는 항상 통과.
 async function ensureAuthedInteractive() {
-  if (!store || !store.auth) return true;       // 로컬 모드: 로그인 불필요
+  if (!store || !store.auth) {
+    // 로컬 모드: 로그인은 없지만 최초 1회 이용 동의가 필요
+    return await requireConsent();
+  }
   if (store.auth.current()) return true;        // 이미 로그인됨
+  // Firebase 모드: 먼저 이용 동의를 받고 Google 로그인 진행
+  if (!(await requireConsent())) return false;
   try {
     await store.auth.signIn();
     return !!store.auth.current();
@@ -524,11 +574,14 @@ function setupAuthUI() {
     return;
   }
 
-  loginBtn.addEventListener('click', () => {
-    store.auth.signIn().catch(err => {
+  loginBtn.addEventListener('click', async () => {
+    if (!(await requireConsent())) return; // 회원가입 동의 먼저
+    try {
+      await store.auth.signIn();
+    } catch (err) {
       console.warn('[Auth] 로그인 실패', err);
       alert('로그인에 실패했어요: ' + (err.message || err.code || err));
-    });
+    }
   });
   logoutBtn.addEventListener('click', () => store.auth.signOut());
 

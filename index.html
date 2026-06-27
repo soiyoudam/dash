@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="style.css?v=20260627c">
+  <link rel="stylesheet" href="style.css?v=20260627d">
 </head>
 <body>
   <nav class="top-nav">
@@ -53,7 +53,7 @@
       <a href="#" data-doc="개인정보처리방침.md" data-title="개인정보처리방침">개인정보처리방침</a>
     </p>
     <p class="body-sm footer-officer">
-      개인정보책임자: [교사 성명] ([학교명]) · 문의: [교무실 연락처]
+      개인정보책임자: 김나현 (잠실중학교) · 문의: [잠실중학교 교무실 번호]
     </p>
   </footer>
 
@@ -80,6 +80,31 @@
     </header>
     <div class="wall-board" id="wallBoard">
       <!-- 게시물이 여기에 렌더링됩니다 -->
+    </div>
+  </div>
+
+  <!-- 회원가입(이용) 동의 모달 -->
+  <div class="modal-backdrop" id="consentModal" hidden>
+    <div class="modal-card consent-card">
+      <h3 class="title-md">서비스 이용 동의</h3>
+      <p class="consent-intro">담담쌤 학급 대시보드는 학습 활동 지원을 위해 아래 사항에 대한 동의가 필요합니다.</p>
+      <div class="consent-row">
+        <input type="checkbox" id="consentPrivacy">
+        <label for="consentPrivacy"><strong>(필수)</strong> 개인정보 수집 및 이용에 동의합니다.</label>
+      </div>
+      <div class="consent-row">
+        <input type="checkbox" id="consentGuardian">
+        <label for="consentGuardian"><strong>(필수)</strong> (만 14세 미만인 경우) 학교 가정통신문 등을 통해 보호자 동의를 완료하였습니다.</label>
+      </div>
+      <p class="consent-links">
+        자세한 내용:
+        <a href="#" data-doc="이용약관.md" data-title="이용약관">이용약관</a> ·
+        <a href="#" data-doc="개인정보처리방침.md" data-title="개인정보처리방침">개인정보처리방침</a>
+      </p>
+      <div class="modal-actions">
+        <button type="button" class="button-ghost" id="consentCancel">취소</button>
+        <button type="button" class="button-primary" id="consentAgree" disabled>동의하고 계속</button>
+      </div>
     </div>
   </div>
 
@@ -112,6 +137,6 @@
     </form>
   </div>
 
-  <script type="module" src="app.js?v=20260627c"></script>
+  <script type="module" src="app.js?v=20260627d"></script>
 </body>
 </html>
