@@ -478,6 +478,12 @@ body.no-scroll { overflow: hidden; }
 .wall-empty .title-md { color: var(--color-ink); margin-bottom: var(--spacing-xs); }
 
 /* ===== 모달 ===== */
+/* hidden 속성이 항상 우선하도록 (display:flex 등이 [hidden]을 덮어쓰는 문제 방지) */
+.modal-backdrop[hidden],
+.wall-overlay[hidden] {
+  display: none !important;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
